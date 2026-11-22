@@ -1,7 +1,48 @@
-import 'dotenv/config';import express from 'express';import mongoose from 'mongoose';import cors from 'cors';import helmet from 'helmet';import cookieParser from 'cookie-parser';import rateLimit from 'express-rate-limit';import authRoutes from './routes/auth.js';import dataRoutes from './routes/data.js';import {notFound,errors} from './middleware/errors.js';
-const app=express();const allowedOrigins=(process.env.CLIENT_URL||'http://localhost:5173').split(',').map(s=>s.trim());app.use(helmet());app.use(cors({origin:allowedOrigins,credentials:true}));app.use((req,res,next)=>{if(['POST','PUT','PATCH','DELETE'].includes(req.method)&&req.headers.origin&&!allowedOrigins.includes(req.headers.origin))return res.status(403).json({error:'Request origin is not allowed.'});next();});app.use(express.json({limit:'32kb'}));app.use(cookieParser());app.use('/api/auth',rateLimit({windowMs:15*60*1000,limit:100,standardHeaders:true,legacyHeaders:false}),authRoutes);app.get('/api/health',async(req,res)=>{try{if(!mongoose.connection.db)throw new Error('database unavailable');await mongoose.connection.db.admin().ping();res.json({status:'ok',database:'connected'});}catch{res.status(503).json({status:'degraded',database:'disconnected'});}});app.use('/api',dataRoutes);app.use(notFound);app.use(errors);
+import 'dotenv/config';
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
+import authRoutes from './routes/auth.js';
+import dataRoutes from './routes/data.js';
+import {notFound,errors} from './middleware/errors.js';
+
+const app=express();
+const allowedOrigins=(process.env.CLIENT_URL||'http://localhost:5173').split(',').map(s=>s.trim());
+app.use(helmet());
+app.use(cors({origin:allowedOrigins,credentials:true}));
+app.use((req,res,next)=>{
+  if(['POST','PUT','PATCH','DELETE'].includes(req.method)&&req.headers.origin&&!allowedOrigins.includes(req.headers.origin))return res.status(403).json({error:'Request origin is not allowed.'});
+  next();
+});
+app.use(express.json({limit:'32kb'}));
+app.use(cookieParser());
+app.get('/',(req,res)=>res.json({service:'CarbonTrack API',status:'running',message:'This is the API service. Open the Vercel frontend to use CarbonTrack.',health:'/api/health'}));
+app.use('/api/auth',rateLimit({windowMs:15*60*1000,limit:100,standardHeaders:true,legacyHeaders:false}),authRoutes);
+app.get('/api/health',async(req,res)=>{
+  try{
+    if(!mongoose.connection.db)throw new Error('database unavailable');
+    await mongoose.connection.db.admin().ping();
+    res.json({status:'ok',database:'connected'});
+  }catch{
+    res.status(503).json({status:'degraded',database:'disconnected'});
+  }
+});
+app.use('/api',dataRoutes);
+app.use(notFound);
+app.use(errors);
 const port=process.env.PORT||5000;
 if(!process.env.MONGO_URI||!process.env.JWT_SECRET){console.error('MONGO_URI and JWT_SECRET are required.');process.exit(1);}
 app.listen(port,()=>console.log(`CarbonTrack API listening on ${port}`));
-async function connectDatabase(){try{await mongoose.connect(process.env.MONGO_URI,{dbName:'carbontrack',serverSelectionTimeoutMS:10000});console.log('MongoDB connected (carbontrack).');}catch(e){console.error('MongoDB connection failed; retrying in 8 seconds:',e.name,e.cause?.code||e.code||'connection error');setTimeout(connectDatabase,8000);}}
+async function connectDatabase(){
+  try{
+    await mongoose.connect(process.env.MONGO_URI,{dbName:'carbontrack',serverSelectionTimeoutMS:10000});
+    console.log('MongoDB connected (carbontrack).');
+  }catch(e){
+    console.error('MongoDB connection failed; retrying in 8 seconds:',e.name,e.cause?.code||e.code||'connection error');
+    setTimeout(connectDatabase,8000);
+  }
+}
 connectDatabase();

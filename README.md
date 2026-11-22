@@ -93,11 +93,11 @@ Run `npm test` at the repository root for Node's built-in calculator tests. Run 
 
 ### Render API
 
-Create a Node web service with repository root `server`, build command `npm install`, and start command `npm start`. Configure `MONGO_URI`, a strong `JWT_SECRET`, `CLIENT_URL` set to the Vercel origin, and `NODE_ENV=production`. Use a dedicated Atlas database user and appropriate network access.
+The root `render.yaml` defines a free Node web service with repository root `server`, build command `npm install`, start command `npm start`, and `/api/health` health checks. In Render, create a Blueprint from this GitHub repository and provide `MONGO_URI` and `CLIENT_URL`; Render generates `JWT_SECRET`. Use the dedicated Atlas database user, then add the Render service's outbound IP ranges (shown in its Connect panel) to the Atlas IP access list. Avoid opening Atlas to all IPs. [Render Blueprint reference](https://render.com/docs/blueprint-spec) · [Render outbound IPs](https://render.com/docs/outbound-ip-addresses).
 
 ### Vercel frontend
 
-Import the repository, set root directory to `client`, build command `npm run build`, output directory `dist`, and `VITE_API_URL` to the Render API URL ending in `/api`. `client/vercel.json` supplies the SPA rewrite. Set the Render `CLIENT_URL` to the deployed frontend origin.
+Import the repository, set root directory to `client`, build command `npm run build`, output directory `dist`, and `VITE_API_URL` to the Render API URL ending in `/api`. `client/vercel.json` supplies the SPA rewrite. After Vercel assigns the frontend domain, set Render's `CLIENT_URL` to that origin and redeploy the API. Vercel applies environment variable changes on a new deployment. [Vercel Git deployment guide](https://vercel.com/docs/git) · [Vercel environment variables](https://vercel.com/docs/environment-variables).
 
 No deployment is claimed until the services are configured and verified.
 

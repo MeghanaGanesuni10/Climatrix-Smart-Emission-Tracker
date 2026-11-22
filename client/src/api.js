@@ -1,0 +1,4 @@
+const localApi=`http://${window.location.hostname}:5000/api`;
+const base=(import.meta.env.VITE_API_URL||localApi).replace(/\/$/,'');
+export async function api(path,options={}){const response=await fetch(`${base}${path}`,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});const data=response.headers.get('content-type')?.includes('application/json')?await response.json():await response.text();if(response.status===401&&path!=='/auth/login')window.dispatchEvent(new Event('carbontrack:unauthorized'));if(!response.ok)throw new Error(data?.error||'Request failed');return data;}
+export async function downloadCsv(){const r=await fetch(`${base}/reports/csv`,{credentials:'include'});if(!r.ok)throw new Error('Could not download report');const a=document.createElement('a');a.href=URL.createObjectURL(await r.blob());a.download='carbontrack-emissions.csv';a.click();URL.revokeObjectURL(a.href);}

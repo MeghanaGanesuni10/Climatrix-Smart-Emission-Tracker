@@ -1,0 +1,1 @@
+{"name":"carbontrack","version":"1.0.0","private":true,"description":"Enterprise carbon management and sustainability analytics platform","scripts":{"dev:client":"npm --prefix client run dev","dev:server":"npm --prefix server run dev","build":"npm --prefix client run build","test":"npm --prefix server test"}}

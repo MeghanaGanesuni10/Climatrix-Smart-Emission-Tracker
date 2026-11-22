@@ -1,0 +1,3 @@
+import mongoose from 'mongoose';
+const schema = new mongoose.Schema({ organization:{type:mongoose.Schema.Types.ObjectId,ref:'Organization',required:true,index:true},createdBy:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true},category:{type:String,enum:['Electricity','Fuel','Transportation','Business Travel'],required:true},description:{type:String,trim:true,maxlength:240,default:''},date:{type:Date,required:true},consumption:{type:Number,required:true,min:0.000001},unit:{type:String,required:true},subtype:{type:String,required:true},factor:{type:Number,required:true},factorVersion:{type:String,required:true},emissions:{type:Number,required:true,min:0},demo:{type:Boolean,default:false}},{timestamps:true});
+export default mongoose.model('Emission',schema);
